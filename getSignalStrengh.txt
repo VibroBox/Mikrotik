@@ -1,40 +1,47 @@
-/system leds set [find where leds="led1"] type=off;
-/system leds set [find where leds="led2"] type=off;
-/system leds set [find where leds="led3"] type=off;
-/system leds set [find where leds="led4"] type=off;
 #params
 :local pppClientName [/interface ppp-client get 0 name]; 
 :local minSignalStrengh -50;
-/interface ppp-client info pppClientName do={
+/interface ppp-client info $pppClientName do={
 :if ([:len $"access-technology"] > 0 ) do={
-:global lte $"access-technology" ;
+:global lte $"access-technology";
 :global signalstrenghString $"signal-strengh";
-:global signalstrengh [:tonum [:pick $signalstrenghString 0 4]]
+:global signalstrengh [:tonum [:pick $signalstrenghString 0 4]];
 :if ([:typeof $signalstrengh] = "nil") do={
-:set signalstrengh [:tonum [:pick $signalstrenghString 0 3]];
+:set $signalstrengh [:tonum [:pick $signalstrenghString 0 3]];
+}
+#no information
+:if ([:typeof $signalstrengh] = "nil") do={
+:set $signalstrengh -300;
 }
 :global itog ($lte."  ".$signalstrengh); 
-#:log warn $itog;
+:log warn $itog;
 #
 :global ledSignal (-(($signalstrengh - $minSignalStrengh) / 5));
 :if (($ledSignal - 8) >= 0) do={
 /system leds set [find where leds="led4"] type=on;
 :set $ledSignal ($ledSignal - 8);
+} else={
+/system leds set [find where leds="led4"] type=off;
 }
 :if (($ledSignal - 4) >= 0) do={
 /system leds set [find where leds="led3"] type=on;
 :set $ledSignal ($ledSignal - 4);
+} else={
+/system leds set [find where leds="led3"] type=off;
 }
 :if (($ledSignal - 2) >= 0) do={
 /system leds set [find where leds="led2"] type=on;
 :set $ledSignal ($ledSignal - 2);
+} else={
+/system leds set [find where leds="led2"] type=off;
 }
 :if (($ledSignal - 1) >= 0) do={
 /system leds set [find where leds="led1"] type=on;
 :set $ledSignal ($ledSignal - 1);
+} else={
+/system leds set [find where leds="led1"] type=off;
 }
-#
-#
+#exit from script. mikrotik bug: if no quit will be infinity loop
 :quit;
 }
 }
